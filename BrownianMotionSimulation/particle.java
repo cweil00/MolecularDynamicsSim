@@ -34,11 +34,6 @@ class Particle{
     this.updateVelocity(dt);
   }
   
-  public void setV(float vx, float vy){
-    this.vx = vx;
-    this.vy = vy;
-  }
-  
   public float getX(){
     return x;
   }
@@ -47,19 +42,10 @@ class Particle{
     return y;
   }
   
-  public float getVx(){
-    return vx;
-  }
-  
-  public float getVy(){
-    return vy;
-  }
-  
   public String toString(){
     return "Position: (" + x + ", " + y + "), " +
            "Velocity: (" + vx + ", " + vy + "), " +
            "Acceleration: (" + ax + ", " + ay + ")";
-  
   }
   
 }
