@@ -1,13 +1,28 @@
+//Simulation Variables
 let particles = [];
-let N = 2;
+let N;
 let diameter = 10;
 let dt = 0.02;
 let k = 50;
 let wallThickness = 20;
 let numStepsPerFrame = 20;
 
+//UI variables
+let nSlider;
+let vSlider;
+let startButton;
+let startButtonValue = 0;
+let restartButton;
+
+//Other needed/useful variables
+let endWidth;
+
 function setup() {
-    createCanvas(500, 500);
+    createCanvas(1000, 500);
+    endWidth = width - 100;
+    UISetup();
+    UILabels();
+    N = nSlider.value();
     for (let i = 0; i < N; i++) {
         addParticle(i * diameter + wallThickness, height - diameter - wallThickness);
     }
@@ -15,26 +30,82 @@ function setup() {
 
 function draw() {
     background(150);
-    drawWalls();
-    drawParticles();
-    let totEnergy = 0;
-    let temp = 0;
-    let p = 0;
-    for (let i = 0; i < numStepsPerFrame; i++) {
-        updateParticles();
-        totEnergy = totEnergy + totalEnergy();
-        temp = temp + temperature();
-        p = p + pressure();
+    if (startButtonValue == 0) {
+        let v = vSlider.value();
+        endWidth = round(v / (height - 2 * wallThickness));
+
+        N = nSlider.value();
+        particles = []
+        let numNPerRow = (endWidth - 2 * wallThickness) / diameter;
+        let numRowsFilled = 0;
+        let count = 0;
+        for (let i = 0; i < N; i++) {
+            if (count == numNPerRow) {
+                numRowsFilled++;
+                count = 0;
+            }
+            addParticle(count * diameter + wallThickness, height - numRowsFilled * diameter - wallThickness);
+            count++;
+        }
     }
-    totEnergy = totEnergy / (numStepsPerFrame * dt);
-    temp = temp / (numStepsPerFrame * dt);
-    p = p / (numStepsPerFrame * dt);
-    updateParameters(totEnergy, temp, p);
-    //for (let i = 0; i < N; i++) {
-    //    console.log("Particle: " + i);
-    //    console.log(particles[i].toString());
-    //}
-    //console.log();
+    drawWalls(endWidth - 2 * wallThickness + diameter, height - 2 * wallThickness + diameter);
+    drawParticles();
+    UILabels();
+    if (startButtonValue == 1) {
+        let totEnergy = 0;
+        let temp = 0;
+        let p = 0;
+        for (let i = 0; i < numStepsPerFrame; i++) {
+            updateParticles();
+            totEnergy = totEnergy + totalEnergy();
+            temp = temp + temperature();
+            p = p + pressure();
+        }
+        totEnergy = totEnergy / numStepsPerFrame;
+        temp = temp / numStepsPerFrame;
+        p = p / numStepsPerFrame;
+        updateParameters(totEnergy, temp, p);
+        //for (let i = 0; i < N; i++) {
+        //    console.log("Particle: " + i);
+        //    console.log(particles[i].toString());
+        //}
+        //console.log();
+    }
+}
+
+function UISetup() {
+    fill(0);
+    nSlider = createSlider(1, 1000, 100, 1);
+    nSlider.position(endWidth, 50);
+    nSlider.style('width', '80px');
+
+    vSlider = createSlider((height - 2 * wallThickness) * (10 + 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness));
+    vSlider.position(endWidth, 100);
+    vSlider.style('width', '80px');
+
+    startButton = createButton("Start");
+    startButton.position(endWidth, 150);
+    startButton.mousePressed(start);
+
+    restartButton = createButton("Restart");
+    restartButton.position(endWidth, 200);
+    restartButton.mousePressed(restart);
+}
+
+function UILabels() {
+    let nLabel = "N: " + nSlider.value();
+    text(nLabel, width - 100, 45);
+
+    let vLabel = "V: " + vSlider.value();
+    text(vLabel, width - 100, 95);
+}
+
+function restart() {
+    console.log(location.reload());
+}
+
+function start() {
+    startButtonValue = 1;
 }
 
 function addParticle(x, y) {
@@ -48,9 +119,9 @@ function drawParticles() {
     }
 }
 
-function drawWalls() {
+function drawWalls(w, h) {
     fill(255);
-    rect(wallThickness - diameter / 2, wallThickness - diameter / 2, width - 2 * wallThickness + diameter, height - 2 * wallThickness + diameter);
+    rect(wallThickness - diameter / 2, wallThickness - diameter / 2, w, h);
 }
 
 function updateParameters(totEnergy, temp, p) {
@@ -59,7 +130,7 @@ function updateParameters(totEnergy, temp, p) {
     let pString = "P: " + round(p, 3);
     text(energyString, wallThickness, height - wallThickness / 6);
     text(tempString, width / 2 - wallThickness / 2, height - wallThickness / 6);
-    text(pString, width - 2 * wallThickness, height - wallThickness / 6);
+    text(pString, width - 3 * wallThickness, height - wallThickness / 6);
 }
 
 function forceX(distX, distY) {
@@ -112,15 +183,15 @@ function leftWallForce(pos) {
 }
 
 function rightWallForce(pos) {
-    if (pos < (width - wallThickness)) {
+    if (pos < (endWidth - wallThickness)) {
         return 0;
     }
     else {
-        if (abs(pos - (width - wallThickness)) > wallThickness / 2) {
+        if (abs(pos - (endWidth - wallThickness)) > wallThickness / 2) {
             return -k * wallThickness / 2;
         }
         else {
-            return -k * (pos - (width - wallThickness));
+            return -k * (pos - (endWidth - wallThickness));
         }
     }
 }
@@ -181,7 +252,7 @@ function pressure() {
     for (let i = 0; i < N; i++) {
         wallForce = wallForce + leftWallForce(particles[i].getX()) + rightWallForce(particles[i].getX()) + topWallForce(particles[i].getY()) + bottomWallForce(particles[i].getY());
     }
-    let surfaceArea = 2 * (width - 2 * wallThickness + diameter) + 2 * (height - 2 * wallThickness + diameter)
+    let surfaceArea = 2 * (endWidth - 2 * wallThickness + diameter) + 2 * (height - 2 * wallThickness + diameter)
     return wallForce / surfaceArea
 }
 
