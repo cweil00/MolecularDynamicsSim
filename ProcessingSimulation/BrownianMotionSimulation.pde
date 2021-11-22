@@ -1,16 +1,17 @@
 import java.util.ArrayList;
 
 ArrayList<Particle> particles = new ArrayList<Particle>();
-int N = 2;
+int N = 1;
 int diameter = 10;
-float dt = 0.001;
-float k = 500;
+float dt = 0.02;
+float k = 50;
 int wallThickness = 20;
+int numStepsPerFrame = 20;
 
 void setup() {
   size(500, 500);
   for (int i=0; i<N; i++){
-    addParticle(i*diameter + 3*diameter/4 + wallThickness, height - wallThickness - 3*diameter/4);
+    addParticle(i*diameter + wallThickness, height - diameter - wallThickness);
   }
 }
 
@@ -18,7 +19,9 @@ void draw() {
   background(150);
   drawWalls();
   drawParticles();
-  updateParticles();
+  for (int i=0; i<numStepsPerFrame; i++){
+    updateParticles();
+  }
   for (int i=0; i<particles.size(); i++){
     System.out.println("Particle: " + i);
     System.out.println(particles.get(i).toString());
@@ -39,7 +42,7 @@ void drawParticles(){
 
 void drawWalls(){
   fill(255);
-  rect(wallThickness, wallThickness, width - 2*wallThickness, height - 2*wallThickness);
+  rect(wallThickness - diameter/2, wallThickness - diameter/2, width - 2*wallThickness + diameter/2, height - 2*wallThickness + diameter/2);
 }
 
 float forceX(float distX, float distY){
@@ -47,7 +50,7 @@ float forceX(float distX, float distY){
     return 0;
   }
   else{
-    return 24*diameter*diameter*diameter*diameter*diameter*diameter*distX*((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY) - 2*diameter*diameter*diameter*diameter*diameter*diameter)/((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY));
+    return -24*diameter*diameter*diameter*diameter*diameter*diameter*distX*((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY) - 2*diameter*diameter*diameter*diameter*diameter*diameter)/((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY));
   }
 }
 
@@ -56,7 +59,7 @@ float forceY(float distX, float distY){
     return 0;
   }
   else{
-    return 24*diameter*diameter*diameter*diameter*diameter*diameter*distY*((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY) - 2*diameter*diameter*diameter*diameter*diameter*diameter)/((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY));
+    return -24*diameter*diameter*diameter*diameter*diameter*diameter*distY*((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY) - 2*diameter*diameter*diameter*diameter*diameter*diameter)/((distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY)*(distX*distX + distY*distY));
   }
 }
 
@@ -82,7 +85,12 @@ float leftWallForce(float pos){
     return 0;
   }
   else{
-    return -k*(pos - wallThickness);
+    if (abs(pos - wallThickness) < wallThickness/2){
+      return k*wallThickness/2;
+    }
+    else{
+      return -k*(pos - wallThickness);
+    }
   }
 }
 
@@ -91,7 +99,12 @@ float rightWallForce(float pos){
     return 0;
   }
   else{
-    return -k*(pos - (width - wallThickness));
+    if (abs(pos - (width - wallThickness)) < wallThickness/2){
+      return -k*wallThickness/2;
+    }
+    else{
+      return -k*(pos - (width - wallThickness));
+    }
   }
 }
 
@@ -100,7 +113,12 @@ float topWallForce(float pos){
     return 0;
   }
   else{
-    return -k*(pos - wallThickness);
+    if (abs(pos - wallThickness) < wallThickness/2){
+      return k*wallThickness/2;
+    }
+    else{
+      return -k*(pos - wallThickness);
+    }
   }
 }
 
@@ -109,6 +127,11 @@ float bottomWallForce(float pos){
     return 0;
   }
   else{
-    return -k*(pos - (height - wallThickness));
+    if (abs(pos - (height - wallThickness)) < wallThickness/2){
+      return -k*wallThickness/2;
+    }
+    else{
+      return -k*(pos - (height - wallThickness));
+    }
   }
 }
