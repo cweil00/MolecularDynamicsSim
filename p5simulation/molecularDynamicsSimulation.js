@@ -109,7 +109,7 @@ function start() {
 }
 
 function addParticle(x, y) {
-    particles.push(new Particle(x, y));
+    particles.push(new Particle(x, y, diameter));
 }
 
 function drawParticles() {
@@ -134,20 +134,36 @@ function updateParameters(totEnergy, temp, p) {
 }
 
 function forceX(distX, distY) {
-    if ((distX * distX + distY * distY) > 9 * diameter * diameter) {
+    let rSquared = (distX * distX) + (distY * distY);
+    if (rSquared < diameter * diameter){
+        rSquared = diameter * diameter;
+    }
+    if (rSquared > (9 * diameter * diameter)) {
         return 0;
     }
     else {
-        return -24 * diameter * diameter * diameter * diameter * diameter * diameter * distX * ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) - 2 * diameter * diameter * diameter * diameter * diameter * diameter) / ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY));
+        let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
+        let rSquaredCubed = rSquared * rSquared * rSquared;
+        let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+        let numerator = -24 * diameter * diameterPower * distX * (rSquaredCubed - 2 * diameterPower);
+        return numerator / rSquaredSeventh;
     }
 }
 
 function forceY(distX, distY) {
-    if ((distX * distX + distY * distY) > 9 * diameter * diameter) {
+    let rSquared = (distX * distX) + (distY * distY);
+    if (rSquared < diameter * diameter){
+        rSquared = diameter * diameter;
+    }
+    if (rSquared > (9 * diameter * diameter)) {
         return 0;
     }
     else {
-        return -24 * diameter * diameter * diameter * diameter * diameter * diameter * distY * ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) - 2 * diameter * diameter * diameter * diameter * diameter * diameter) / ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY));
+        let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
+        let rSquaredCubed = rSquared * rSquared * rSquared;
+        let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+        let numerator = -24 * diameter * diameterPower * distY * (rSquaredCubed - 2 * diameterPower);
+        return numerator / rSquaredSeventh;
     }
 }
 
@@ -234,7 +250,7 @@ function totalEnergy() {
                 E = E + potentialEnergy(distX, distY);
             }
         }
-        E = E + kineticEnergy(particles[i].getVx(), particles[i].getVy());
+        E = E + kineticEnergy(particles[i].getVx(), particles[i].getVy(), particles[i].getM());
     }
     return E;
 }
@@ -242,9 +258,9 @@ function totalEnergy() {
 function temperature() { //need a time average
     let totalK = 0;
     for (let i = 0; i < N; i++) {
-        totalK = totalK + kineticEnergy(particles[i].getVx(), particles[i].getVy());
+        totalK = totalK + kineticEnergy(particles[i].getVx(), particles[i].getVy(), particles[i].getM());
     }
-    return totalK / N;
+    return totalK / (N * N * diameter);
 }
 
 function pressure() {
@@ -257,14 +273,22 @@ function pressure() {
 }
 
 function potentialEnergy(distX, distY) {
-    if ((distX * distX + distY * distY) > 9 * diameter * diameter) {
+    let rSquared = (distX * distX) + (distY * distY);
+    if (rSquared < diameter * diameter){
+        rSquared = diameter * diameter;
+    }
+    if (rSquared > (9 * diameter * diameter)) {
         return 0;
     }
     else {
-        return 4 * (diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter / ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY)) - diameter * diameter * diameter * diameter * diameter * diameter / ((distX * distX + distY * distY) * (distX * distX + distY * distY) * (distX * distX + distY * distY)));
+        let diameterTwelve = diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter;
+        let diameterSix = diameter * diameter * diameter * diameter * diameter * diameter;
+        let rSquaredCubed = rSquared * rSquared * rSquared;
+        let rSquaredSix = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+        return 4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
     }
 }
 
-function kineticEnergy(vx, vy) {
-    return 0.5 * (vx * vx + vy * vy);
+function kineticEnergy(vx, vy, m) {
+    return 0.5 * m * (vx * vx + vy * vy);
 }

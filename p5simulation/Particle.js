@@ -6,14 +6,16 @@ class Particle {
     #vy;
     #ax;
     #ay;
+    #m;
 
-    constructor(x, y) {
+    constructor(x, y, m) {
         this.#x = x;
         this.#y = y;
         this.#vx = 0;
         this.#vy = 0;
         this.#ax = 0;
         this.#ay = 0;
+        this.#m = m;
     }
 
     #updatePosition(dt) {
@@ -29,8 +31,8 @@ class Particle {
     updateMotion(Fx, Fy, dt) {
         this.#updatePosition(dt);
         this.#updateVelocity(dt);
-        this.#ax = Fx;
-        this.#ay = Fy;
+        this.#ax = Fx / this.#m;
+        this.#ay = Fy / this.#m;
         this.#updateVelocity(dt);
     }
 
@@ -48,6 +50,10 @@ class Particle {
 
     getVy() {
         return this.#vy;
+    }
+
+    getM() {
+        return this.#m;
     }
 
     toString() {
