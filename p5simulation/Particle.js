@@ -13,43 +13,25 @@ class Particle {
         this.#y = y;
         this.#vx = random() - 0.5;
         this.#vy = random() - 0.5;
-        //this.#vx = 0;
-        //this.#vy = 0;
         this.#ax = 0;
         this.#ay = 0;
         this.#m = m;
     }
 
-    #updatePosition(dt) {
+    updatePosition(dt) {
         this.#x = this.#x + this.#vx * dt + this.#ax * dt * dt / 2;
         this.#y = this.#y + this.#vy * dt + this.#ay * dt * dt / 2;
     }
 
-    /*#updatePosition(dt) {
-        this.#x = this.#x + this.#vx * dt;
-        this.#y = this.#y + this.#vy * dt;
-    }*/
-
-    #updateVelocity(dt) {
+    updateVelocity(dt) {
         this.#vx = this.#vx + this.#ax * dt / 2;
         this.#vy = this.#vy + this.#ay * dt / 2;
     }
 
-    updateMotion(Fx, Fy, dt) {
-        this.#updatePosition(dt);
-        this.#updateVelocity(dt);
+    updateAcceleration(Fx, Fy) {
         this.#ax = Fx / this.#m;
         this.#ay = Fy / this.#m;
-        this.#updateVelocity(dt);
     }
-
-    /*updateMotion(Fx, Fy, dt){
-        this.#updateVelocity(dt);
-        this.#updatePosition(dt);
-        this.#ax = Fx / this.#m;
-        this.#ay = Fy / this.#m;
-        this.#updateVelocity(dt);
-    }*/
 
     getX() {
         return this.#x;

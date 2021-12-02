@@ -1,3 +1,5 @@
+//TODO compare to Shroeder's code
+
 //Simulation Variables
 let particles = [];
 let N;
@@ -16,6 +18,8 @@ let restartButton;
 
 //Other needed/useful variables
 let endWidth;
+let pec;
+pec = potentialEnergyAtCutoff();
 
 function setup() {
     createCanvas(1000, 500);
@@ -135,9 +139,6 @@ function updateParameters(totEnergy, temp, p) {
 
 function forceX(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter) {
-        rSquared = diameter * diameter;
-    }
     let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
     let rSquaredCubed = rSquared * rSquared * rSquared;
     let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
@@ -147,9 +148,6 @@ function forceX(distX, distY) {
 
 function forceY(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter) {
-        rSquared = diameter * diameter;
-    }
     let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
     let rSquaredCubed = rSquared * rSquared * rSquared;
     let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
@@ -159,8 +157,12 @@ function forceY(distX, distY) {
 
 function updateParticles() {
     for (let i = 0; i < N; i++) {
+        particles[i].updatePosition(dt);
+        particles[i].updateVelocity(dt);
         let fx = 0;
         let fy = 0;
+        fx = fx + leftWallForce(particles[i].getX()) + rightWallForce(particles[i].getX());
+        fy = fy + topWallForce(particles[i].getY()) + bottomWallForce(particles[i].getY());
         for (let j = 0; j < N; j++) {
             if (i != j) {
                 let distX = particles[i].getX() - particles[j].getX();
@@ -171,9 +173,8 @@ function updateParticles() {
                 }
             }
         }
-        fx = fx + leftWallForce(particles[i].getX()) + rightWallForce(particles[i].getX());
-        fy = fy + topWallForce(particles[i].getY()) + bottomWallForce(particles[i].getY());
-        particles[i].updateMotion(fx, fy, dt);
+        particles[i].updateAcceleration(fx, fy);
+        particles[i].updateVelocity(dt);
     }
 }
 
@@ -242,18 +243,19 @@ function totalEnergy() {
                 let distY = particles[i].getY() - particles[j].getY();
                 E = E + potentialEnergy(distX, distY);
             }
+            E = E + wallEnergy(particles[i].getX(), particles[i].getY());
         }
         E = E + kineticEnergy(particles[i].getVx(), particles[i].getVy(), particles[i].getM());
     }
     return E;
 }
 
-function temperature() { //need a time average
+function temperature() {
     let totalK = 0;
     for (let i = 0; i < N; i++) {
         totalK = totalK + kineticEnergy(particles[i].getVx(), particles[i].getVy(), particles[i].getM());
     }
-    return totalK / (N * N * diameter);
+    return totalK / (N * diameter);
 }
 
 function pressure() {
@@ -261,15 +263,12 @@ function pressure() {
     for (let i = 0; i < N; i++) {
         wallForce = wallForce + leftWallForce(particles[i].getX()) + rightWallForce(particles[i].getX()) + topWallForce(particles[i].getY()) + bottomWallForce(particles[i].getY());
     }
-    let surfaceArea = 2 * (endWidth - 2 * wallThickness + diameter) + 2 * (height - 2 * wallThickness + diameter)
-    return wallForce / surfaceArea
+    let surfaceArea = 2 * (endWidth - 2 * wallThickness) + 2 * (height - 2 * wallThickness)
+    return wallForce / surfaceArea;
 }
 
 function potentialEnergy(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter) {
-        rSquared = diameter * diameter;
-    }
     if (rSquared > (9 * diameter * diameter)) {
         return 0;
     }
@@ -278,10 +277,42 @@ function potentialEnergy(distX, distY) {
     let diameterSix = diameter * diameter * diameter * diameter * diameter * diameter;
     let rSquaredCubed = rSquared * rSquared * rSquared;
     let rSquaredSix = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
-    return 4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
+    let particlePE =  4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
+    return particlePE - pec;
     }
 }
 
 function kineticEnergy(vx, vy, m) {
     return 0.5 * m * (vx * vx + vy * vy);
+}
+
+function potentialEnergyAtCutoff(){
+    let rSquared = diameter * diameter * 9;
+    let diameterTwelve = diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter;
+    let diameterSix = diameter * diameter * diameter * diameter * diameter * diameter;
+    let rSquaredCubed = rSquared * rSquared * rSquared;
+    let rSquaredSix = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+    let particlePE =  4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
+    return particlePE;
+}
+
+function wallEnergy(x, y){
+    let E = 0;
+    if (x < wallThickness) {
+        let temp = 0.5* k * (wallThickness - x) * (wallThickness - x);
+        E = E + temp
+    }
+    if (x > (endWidth - wallThickness)) {
+        let temp = 0.5 * k * (x - (endWidth - wallThickness)) * (x - (endWidth - wallThickness));
+        E = E + temp;
+    }
+    if (y < wallThickness) {
+        let temp = 0.5 * k * (y - wallThickness) * (y - wallThickness);
+        E = E = temp;
+    }
+    if (y > (height - wallThickness)) {
+        let temp = 0.5 * k * (y - (height - wallThickness)) * (y - (height - wallThickness));
+        E = E + temp;
+    }
+    return E;
 }
