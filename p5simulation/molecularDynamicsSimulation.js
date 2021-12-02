@@ -2,8 +2,8 @@
 let particles = [];
 let N;
 let diameter = 10;
-let dt = 0.02;
-let k = 50;
+let dt = 0.005;
+let k = 500;
 let wallThickness = 20;
 let numStepsPerFrame = 20;
 
@@ -135,36 +135,26 @@ function updateParameters(totEnergy, temp, p) {
 
 function forceX(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter){
+    if (rSquared < diameter * diameter) {
         rSquared = diameter * diameter;
     }
-    if (rSquared > (9 * diameter * diameter)) {
-        return 0;
-    }
-    else {
-        let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
-        let rSquaredCubed = rSquared * rSquared * rSquared;
-        let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
-        let numerator = -24 * diameter * diameterPower * distX * (rSquaredCubed - 2 * diameterPower);
-        return numerator / rSquaredSeventh;
-    }
+    let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
+    let rSquaredCubed = rSquared * rSquared * rSquared;
+    let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+    let numerator = -24 * diameter * diameterPower * distX * (rSquaredCubed - 2 * diameterPower);
+    return numerator / rSquaredSeventh;
 }
 
 function forceY(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter){
+    if (rSquared < diameter * diameter) {
         rSquared = diameter * diameter;
     }
-    if (rSquared > (9 * diameter * diameter)) {
-        return 0;
-    }
-    else {
-        let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
-        let rSquaredCubed = rSquared * rSquared * rSquared;
-        let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
-        let numerator = -24 * diameter * diameterPower * distY * (rSquaredCubed - 2 * diameterPower);
-        return numerator / rSquaredSeventh;
-    }
+    let diameterPower = diameter * diameter * diameter * diameter * diameter * diameter;
+    let rSquaredCubed = rSquared * rSquared * rSquared;
+    let rSquaredSeventh = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+    let numerator = -24 * diameter * diameterPower * distY * (rSquaredCubed - 2 * diameterPower);
+    return numerator / rSquaredSeventh;
 }
 
 function updateParticles() {
@@ -173,13 +163,16 @@ function updateParticles() {
         let fy = 0;
         for (let j = 0; j < N; j++) {
             if (i != j) {
-                fx = fx + forceX(particles[i].getX() - particles[j].getX(), particles[i].getY() - particles[j].getY());
-                fy = fy + forceY(particles[i].getX() - particles[j].getX(), particles[i].getY() - particles[j].getY());
+                let distX = particles[i].getX() - particles[j].getX();
+                let distY = particles[i].getY() - particles[j].getY();
+                if (((distX * distX) + (distY * distY)) < (9 * diameter * diameter)) {
+                    fx = fx + forceX(distX, distY);
+                    fy = fy + forceY(distX, distY);
+                }
             }
         }
         fx = fx + leftWallForce(particles[i].getX()) + rightWallForce(particles[i].getX());
         fy = fy + topWallForce(particles[i].getY()) + bottomWallForce(particles[i].getY());
-        //console.log("" + fx + " " + fy);
         particles[i].updateMotion(fx, fy, dt);
     }
 }
@@ -274,18 +267,18 @@ function pressure() {
 
 function potentialEnergy(distX, distY) {
     let rSquared = (distX * distX) + (distY * distY);
-    if (rSquared < diameter * diameter){
+    if (rSquared < diameter * diameter) {
         rSquared = diameter * diameter;
     }
     if (rSquared > (9 * diameter * diameter)) {
         return 0;
     }
     else {
-        let diameterTwelve = diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter;
-        let diameterSix = diameter * diameter * diameter * diameter * diameter * diameter;
-        let rSquaredCubed = rSquared * rSquared * rSquared;
-        let rSquaredSix = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
-        return 4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
+    let diameterTwelve = diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter * diameter;
+    let diameterSix = diameter * diameter * diameter * diameter * diameter * diameter;
+    let rSquaredCubed = rSquared * rSquared * rSquared;
+    let rSquaredSix = rSquared * rSquared * rSquared * rSquared * rSquared * rSquared;
+    return 4 * diameter * ((diameterTwelve / rSquaredSix) - (diameterSix / rSquaredCubed));
     }
 }
 
