@@ -62,11 +62,12 @@ function draw() {
         for (let i = 0; i < numStepsPerFrame; i++) {
             updateParticles();
             totEnergy = totEnergy + totalEnergy();
-            temp = temp + temperature();
+            temp = temp + temperature(); //think this is wrong, should average total kinetic energy then divide it by nkb
             p = p + pressure();
         }
         totEnergy = totEnergy / numStepsPerFrame;
         temp = temp / numStepsPerFrame;
+        temp = temp / (N * diameter);
         p = p / numStepsPerFrame;
         updateParameters(totEnergy, temp, p);
         //for (let i = 0; i < N; i++) {
@@ -255,7 +256,8 @@ function temperature() {
     for (let i = 0; i < N; i++) {
         totalK = totalK + kineticEnergy(particles[i].getVx(), particles[i].getVy(), particles[i].getM());
     }
-    return totalK / (N * diameter);
+    return totalK;
+    //return totalK / (N * diameter);
 }
 
 function pressure() {
