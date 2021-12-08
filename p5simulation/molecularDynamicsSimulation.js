@@ -84,7 +84,8 @@ function UISetup() {
     nSlider.position(endWidth, 50);
     nSlider.style('width', '80px');
 
-    vSlider = createSlider((height - 2 * wallThickness) * (10 + 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness));
+    //vSlider = createSlider((height - 2 * wallThickness) * (10 + 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness));
+    vSlider = createSlider((height - 2 * wallThickness) * (10 + 2 * wallThickness), (endWidth - 2 * wallThickness) * (height - 2 * wallThickness), 147200);
     vSlider.position(endWidth, 100);
     vSlider.style('width', '80px');
 
